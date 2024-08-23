@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
-import re
 import os
 import sys
 import socket
 import logging
 import argparse
 import collections
-import xml.dom.minidom
 
-from scanfile.nmap import NmapScan, NmapHost
-from scanfile.nessus import NessusScan, NessusHost, NessusVuln
-from scanfile.nexpose import NexposeScan, NexposeHost, NexposeVuln
-from scanfile.common import Scan, Host, Vuln, CIDRRange
+from scanfile.nmap import NmapScan
+from scanfile.nessus import NessusScan
+from scanfile.nexpose import NexposeScan
+from scanfile.common import Scan, CIDRRange
 
 # lxml handles namespaces much better
 import xml.etree.ElementTree as ET
@@ -180,7 +178,7 @@ def handle_ports(args, scan):
 def handle_host_vulns(args, scan):
     for h in scan:
         for v in h:
-            print(h.addr, v.plugin_id, v.title)
+            print(h.addr, v.port, v.plugin_id, v.title)
 
 
 def handle_host_port(args, scan):
@@ -274,7 +272,7 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--outfile', help='output modified scan file')
     parser.add_argument('--pretty', action='store_true', help='output pretty xml')
     parser.add_argument('--debug', action='store_true', help='enable debug output')
-    parser.add_argument('scanfile', help='scanner export file')
+    parser.add_argument('scanner_file', help='scanner export file')
     parser.set_defaults(scanname=None)
     subparsers = parser.add_subparsers(help='choose an item to act on')
 
@@ -331,7 +329,7 @@ if __name__ == '__main__':
     port_parser.add_argument('--details', action='store_true', help='ports and services report')
 
     args = parser.parse_args()
-    args.scanname = os.path.basename(args.scanfile)
+    args.scanname = os.path.basename(args.scanner_file)
     if not args.handle:
         print('Choose an action. List actions with -h')
         sys.exit()
@@ -342,11 +340,11 @@ if __name__ == '__main__':
         h.setFormatter(logging.Formatter('[%(levelname)s]:%(lineno)s %(message)s'))
         logger.addHandler(h)
 
-    scan = get_scan_object(args.scanfile)
+    scan = get_scan_object(args.scanner_file)
     args.handle(args, scan)
 
     if args.outfile:
-        if args.outfile == args.scanfile:
+        if args.outfile == args.scanner_file:
             print('Refusing to overwrite input file')
             sys.exit()
         with open(args.outfile, 'w') as fp:

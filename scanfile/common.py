@@ -107,10 +107,14 @@ class Host():
             return True
         return False
     def __iter__(self):
-        vulns = list(self.vulns)
-        for v in vulns:
-            yield v
-        raise StopIteration
+        self._iter_index = 0
+        return self
+    def __next__(self):
+        try:
+            self._iter_index += 1
+            return self.vulns[self._iter_index - 1]
+        except IndexError:
+            raise StopIteration
     def __len__(self):
         return len(self.vulns)
 
@@ -153,9 +157,13 @@ class Scan():
             raise FileExistsError(filename)
         open(filename, 'w').write(self.get_xml(pretty))
     def __iter__(self):
-        hosts = list(self.hosts)
-        for h in hosts:
-            yield h
-        raise StopIteration
+        self._iter_index = 0
+        return self
+    def __next__(self):
+        try:
+            self._iter_index += 1
+            return self.hosts[self._iter_index - 1]
+        except IndexError:
+            raise StopIteration
     def __len__(self):
         return len(self.hosts)
